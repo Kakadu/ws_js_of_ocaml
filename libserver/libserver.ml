@@ -25,6 +25,8 @@ class type socket =
     method on : Js.js_string Js.t -> ('a -> unit) -> unit Js.meth
 
     method send : 'a -> (unit -> unit) -> unit Js.meth
+
+    method clients : 'a Js.readonly_prop
   end
 
 class type server =

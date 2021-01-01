@@ -1,0 +1,11 @@
+(env
+ (dev
+  (flags
+   (:standard -w -3-9-32-33-26))))
+
+(executable
+ (name client)
+ (modes js)
+ (libraries js_of_ocaml-lwt)
+ (preprocess
+  (pps js_of_ocaml-ppx)))
