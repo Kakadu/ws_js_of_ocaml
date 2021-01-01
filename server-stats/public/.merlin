@@ -1,0 +1,11 @@
+EXCLUDE_QUERY_DIR
+B /home/kakadu/.opam/4.10.1+fp+flambda/lib/bytes
+B /home/kakadu/.opam/4.10.1+fp+flambda/lib/js_of_ocaml
+B /home/kakadu/.opam/4.10.1+fp+flambda/lib/uchar
+B ../../_build/default/server-stats/public/.client.eobjs/byte
+S /home/kakadu/.opam/4.10.1+fp+flambda/lib/bytes
+S /home/kakadu/.opam/4.10.1+fp+flambda/lib/js_of_ocaml
+S /home/kakadu/.opam/4.10.1+fp+flambda/lib/uchar
+S .
+FLG -ppx '/media/oldhome/kakadu/prog/asp/reas1/ws_js_of_ocaml/_build/default/.ppx/7b799aed44581cc79b02033532c5f775/ppx.exe --as-ppx'
+FLG -w @1..3@5..28@30..39@43@46..47@49..57@61..62-40 -strict-sequence -strict-formats -short-paths -keep-locs -w -3-9-32-33 -w -3-9-32-33-26

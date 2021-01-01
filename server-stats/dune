@@ -1,0 +1,23 @@
+(executable
+ (name server)
+ (modes js)
+ (libraries js_of_ocaml)
+ (preprocess
+  (pps js_of_ocaml-ppx)))
+
+(rule
+ (targets index.html)
+ (alias all) ; should be used as dune build @server-stats/all
+ (deps
+  (:html public/index.html)
+  (:server server.bc.js)
+  (:client public/client.bc.js))
+ (action
+  (run cp %{html} %{targets})))
+
+(rule
+ (targets)
+ ; this kind of works but removes output
+ (alias run)
+ (action
+  (run node server.bc.js)))
