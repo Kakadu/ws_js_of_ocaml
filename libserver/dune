@@ -1,0 +1,4 @@
+(library
+ (name libserver)
+ (modules libserver)
+ (libraries js_of_ocaml))

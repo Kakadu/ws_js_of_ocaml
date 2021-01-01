@@ -1,7 +1,12 @@
+(env
+ (dev
+  (flags
+   (:standard -w -20-21))))
+
 (executable
  (name server)
  (modes js)
- (libraries js_of_ocaml)
+ (libraries js_of_ocaml libserver)
  (preprocess
   (pps js_of_ocaml-ppx)))
 

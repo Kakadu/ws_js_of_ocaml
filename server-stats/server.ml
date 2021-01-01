@@ -1,103 +1,41 @@
 open Js_of_ocaml
+open Libserver
 
 (* On server-side we can use pure OCaml with
   https://github.com/vbmithr/ocaml-websocket
   and abandone nodeJS
 *)
 
-(*
-type app
-
-class type server = object
-  method listen: int -> (unit -> unit) -> unit Js.meth
-end
-class type http = object
-  method createServer: app -> server Js.t Js.meth
-
-end
-class type io = object
-  method on : Js.js_string -> ('a -> unit) -> unit Js.meth
-end
-
-(* let http : http Js.t = Js.Unsafe.js_expr "require('http')" *)
-(* let express: unit -> app  = Js.Unsafe.js_expr "require('express')" *)
-(* let io : server -> 'io = Js.Unsafe.js_expr "require('socket.io')" *)
-(*
 let () =
-  let port = 6666 in
-  let app = express () in
-  let server = http##createServer app in
-  server##listen port (fun () ->
-    Firebug.console##log (Js.string @@ Printf.sprintf "Server listening at port %d"  port)
-    ) *)
-
-open Common_server
-open Shared
-
-module S = BsSocket.Server.Make(Shared.Messages)
-
-let __ () =
+  let _path = Js.Unsafe.js_expr "require('path')" in
+  let http : http Js.t = Js.Unsafe.js_expr "require('http')" in
+  let webSocket = Js.Unsafe.js_expr "require('ws')" in
   let app =
-    (* let e = Express.create () in *)
-    Express.app ()
-  in
-  let server = S.create_with_http(app) in
-  S.on_connect server (fun socket ->
-    S.Socket.on socket (function
-      | Messages.Ping -> ()
-      | Pong -> ()
-    )
-  );
-  let port = 6666 in
-  Http.listen (S.server server) 6666 (fun () ->
-    printf "Server started at port %d" port
-    )
+    let e = Express.create () in
+    let app = Express.app e in
+    app##use (Express.static e (__dirname ())) |> ignore ;
+    app in
+  let server : server Js.t = http##createServer app in
+  let wss : socket Js.t =
+    let hack : (_ -> _ Js.t) Js.constr = webSocket##._Server in
+    new%js hack (Js.Unsafe.obj [|("server", Js.Unsafe.inject server)|]) in
+  Firebug.console##log wss ;
+  wss##on (Js.string "connection") (fun (ws : socket Js.t) ->
+      Firebug.console##log (Js.string "connection") ;
+      let id =
+        Timers.set_interval ~timeout:100 (fun () ->
+            let info = process##memoryUsage () in
+            (* Firebug.console##log info ; *)
+            ws##send (Json.output info) (fun () -> ()) ) in
+      Firebug.console##log (Js.string "started client interval") ;
+      wss##on (Js.string "connection") (fun () ->
+          Firebug.console##log (Js.string "stopping client interval") ;
+          Timers.clear_interval id ) )
+  |> ignore ;
+  server##listen 8080 (fun () ->
+      Firebug.console##log (Js.string "Listening for port 8080") )
 
-
-
-
-let __ _ =
-  let express : unit -> _ = Js.Unsafe.js_expr "require('express')" in
-  let _app = express () in
-
-  (* let _server : Common_server.server Js.t = Js.Unsafe.eval_s {| require('http').createServer(app); |} in *)
-  let _server : Common_server.server Js.t = Common_server.http##createServer _app in
-  (* let _server : Common_server.server Js.t = Common_server.http##createServer _app in
-  let socket_io : Common_server.server Js.t -> Common_server.io Js.t =
-    Js.Unsafe.js_expr {| require('socket.io') |} in
-  let _io  = socket_io _server in *)
-  let _io  =
-    let open Js.Unsafe in
-    fun_call (Js.Unsafe.js_expr "require('socket.io')") [| inject _server |]
-  in
-
-  (* let _ = Js.Unsafe.js_expr {| server.listen(port, () => {
-      // console.log('Server listening at port %d', 6666);
-    });
-   |}
-  in *)
-  (* Firebug.console##log socket_io; *)
-  Firebug.console##log _io;
-  let port = 6666 in
-  _server##listen port  (fun () ->
-    printf "Server started at port %d" port
-    );
-  (* let _ = Js.Unsafe.js_expr ({|
-    const express = require('express');
-    const app = express();
-    const server = require('http').createServer(app);
-    const io = require('socket.io')(server);
-
-    server.listen(port, () => {
-      console.log('Server listening at port %d', 6666);
-    });
-
-  |})
-  in *)
-  ()
-*)
-
-let _ =
+let __original _ =
   Js.Unsafe.eval_string
     {|
 
@@ -111,8 +49,9 @@ let _ =
       const WebSocket = require('ws');
 
       const app = express();
-      //app.use(express.static(path.join(__dirname, '../../../server/public')));
       app.use(express.static(__dirname));
+      //app.use(express.static(path.join(__dirname, '../../../server/public')));
+
 
       const server = createServer(app);
       const wss = new WebSocket.Server({ server });
@@ -127,6 +66,7 @@ let _ =
           });
         }, 100);
         console.log('started client interval');
+        console.log(id);
 
         ws.on('close', function () {
           console.log('stopping client interval');

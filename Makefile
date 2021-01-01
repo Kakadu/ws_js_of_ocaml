@@ -9,13 +9,20 @@ all: server client
 
 #server:
 #	dune build server-stats/server.bc.js
+define MAKE_RULES0
+.PHONY: $(1) run-$(1)
+$(1):
+	dune build @$(1)/all
 
-.PHONY: server-stats run-server-stats
-server-stats:
-	dune build @server-stats/all
+run-$(1):
+	node _build/default/$(1)/server.bc.js
+endef
 
-run-server-stats:
-	node _build/default/server-stats/server.bc.js
+DEMOS=server-stats chat
+$(foreach i,$(DEMOS),$(eval $(call MAKE_RULES0,$(i)) ) )
+
+
+
 
 celan: clean
 clean:
